@@ -3,11 +3,9 @@ FROM golang:1.23 AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+COPY . /app
 
 RUN go mod download
-
-COPY . .
 
 RUN go build -o ebook-convert-wrapper ./cmd
 
