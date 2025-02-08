@@ -1,0 +1,39 @@
+# curl -X POST -F "file=@input.epub" -F "convert-to=mobi" http://localhost:8080/convert
+POST http://localhost:8080/convert
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="222969.fb2"
+
+< ../../test/infra/book-reader/fb2/222969.fb2
+--WebAppBoundary
+Content-Disposition: form-data; name="convert-to"
+
+pdf
+--WebAppBoundary--
+
+>> output.pdf
+###
+
+POST http://localhost:8080/convert
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="222969.fb2"
+
+< ../../test/infra/book-reader/fb2/222969.fb2
+--WebAppBoundary
+Content-Disposition: form-data; name="convert-to"
+
+mobi
+--WebAppBoundary
+Content-Disposition: form-data; name="convert-options"
+
+margin-top=20 margin-bottom=20
+--WebAppBoundary--
+
+>> output.mobi
+###
+
+###
+GET http://localhost:8080/recipes

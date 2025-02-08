@@ -1,0 +1,127 @@
+openapi: 3.0.3
+info:
+  title: File Conversion API
+  description: API for converting files from one format to another using the `ebook-convert` utility.
+  version: "0.1.0"
+paths:
+  /recipes:
+    get:
+      summary: Get a list of recipes
+      operationId: getRecipes
+      responses:
+        "200":
+          description: A list of recipe strings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example:
+                  - "Spaghetti Carbonara"
+                  - "Chicken Curry"
+                  - "Beef Stroganoff"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unable to retrieve recipes"
+  /health:
+    get:
+      summary: Check server health
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        "500":
+          description: Server is unhealthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: UNHEALTHY
+  /convert:
+    post:
+      summary: Convert files to another format
+      operationId: convertFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The file to be uploaded and converted.
+                convert-to:
+                  type: string
+                  description: The target format for the conversion (e.g., pdf, mobi, epub).
+                convert-options:
+                  type: string
+                  description: | 
+                    Additional options for the `ebook-convert` utility 
+                    in "key=value" format, separated by spaces (e.g., "margin-top=10 margin-right=5").
+                    see: https://manual.calibre-ebook.com/generated/en/ebook-convert.html#fb2-output-options
+                  
+
+              required:
+                - file
+                - convert-to
+      responses:
+        "200":
+          description: File successfully converted
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              description: Header indicating the filename of the converted file.
+              schema:
+                type: string
+              example: attachment; filename=converted-file.pdf
+        "400":
+          description: Bad request (e.g., missing required parameters).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Target format not specified (convert-to parameter)"
+        "405":
+          description: Method not supported (only POST allowed).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Only POST requests are supported"
+        "500":
+          description: Internal server error (e.g., file conversion failed).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error converting file: <details>"
+      tags:
+        - File Conversion
