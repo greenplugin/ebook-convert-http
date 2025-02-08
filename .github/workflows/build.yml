@@ -30,7 +30,7 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
         with:
-          context: deployments/docker
+          context: .
           file: deployments/docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
