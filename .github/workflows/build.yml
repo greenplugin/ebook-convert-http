@@ -2,11 +2,8 @@ name: build and push docker images
 
 on:
   push:
-    branches:
-      - main
-  merge:
-    branches:
-      - main
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   build:
@@ -35,4 +32,4 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/ebook-convert-wrapper:latest
-            ghcr.io/${{ github.repository_owner }}/ebook-convert-wrapper:${{ github.run_number }}
+            ghcr.io/${{ github.repository_owner }}/ebook-convert-wrapper:${{ github.ref_name }}

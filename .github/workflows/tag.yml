@@ -1,0 +1,32 @@
+name: Create Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for the new tag (e.g., 1.0.0)'
+        required: true
+
+jobs:
+  create_tag:
+    name: Create a new tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set tag user info
+        id: user_info
+        run: |
+          echo "user_name=${{ github.actor }}" >> $GITHUB_ENV
+          echo "user_email=${{ github.event.sender.email }}" >> $GITHUB_ENV
+
+      - name: Create and push tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "${{ env.user_name }}"
+          git config user.email "${{ env.user_email }}"
+          git tag -a "${{ github.event.inputs.version }}" -m "Release v${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"
