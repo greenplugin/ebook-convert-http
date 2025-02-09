@@ -77,19 +77,27 @@ jobs:
             echo "⚠️ Warning: Commit message does not follow Conventional Commits. Defaulting to PATCH."
           fi
 
-          # Сохраняем результат в переменной окружения
           echo "bump=$bump" >> $GITHUB_ENV
 
       - name: Find the latest version tag
         id: get_latest_tag
         run: |
-          latest_tag=$(git tag -l --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          all_tags=$(git tag -l | sort -V)
+          echo -e "All tags found in the repository:\n$all_tags"
+          
+          semver_tags=$(echo "$all_tags" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true)
+          echo -e "SemVer-compatible tags:\n$semver_tags"
 
+          latest_tag=$(echo "$semver_tags" | tail -n1)
+          
           if [ -z "$latest_tag" ]; then
-            latest_tag="v0.0.0"
+            latest_tag="0.0.0"
+            echo "⚠️ No SemVer tags found, starting from $latest_tag"
+          else
+            echo "✅ Latest SemVer tag found: $latest_tag"
           fi
 
-          IFS='.' read -r -a version_parts <<< "${latest_tag#v}"
+          IFS='.' read -r -a version_parts <<< "$latest_tag"
           major=${version_parts[0]}
           minor=${version_parts[1]}
           patch=${version_parts[2]}
