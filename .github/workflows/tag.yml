@@ -60,10 +60,30 @@ jobs:
           echo "commit_author_name=$last_author_name" >> $GITHUB_ENV
           echo "commit_author_email=$last_author_email" >> $GITHUB_ENV
 
+      - name: Decide Bump Type (MAJOR, MINOR, PATCH)
+        id: bump_type
+        run: |
+          bump="PATCH"
+
+          commit_message=$(git log -1 --pretty=%B)
+
+          if echo "$commit_message" | grep -qi "^feat:.*BREAKING CHANGE"; then
+            bump="MAJOR"
+          elif echo "$commit_message" | grep -qi "^feat:"; then
+            bump="MINOR"
+          elif echo "$commit_message" | grep -qi "^fix:"; then
+            bump="PATCH"
+          else
+            echo "⚠️ Warning: Commit message does not follow Conventional Commits. Defaulting to PATCH."
+          fi
+
+          # Сохраняем результат в переменной окружения
+          echo "bump=$bump" >> $GITHUB_ENV
+
       - name: Find the latest version tag
         id: get_latest_tag
         run: |
-          latest_tag=$(git tag -l --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          latest_tag=$(git tag -l --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
 
           if [ -z "$latest_tag" ]; then
             latest_tag="v0.0.0"
@@ -73,8 +93,23 @@ jobs:
           major=${version_parts[0]}
           minor=${version_parts[1]}
           patch=${version_parts[2]}
-          new_patch=$((patch + 1))
-          new_version="v${major}.${minor}.${new_patch}"
+          
+           case "${{ env.bump }}" in
+            MAJOR)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            MINOR)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            PATCH)
+              patch=$((patch + 1))
+              ;;
+          esac
+          
+          new_version="${major}.${minor}.${new_patch}"
 
           echo "latest_tag=$latest_tag" >> $GITHUB_ENV
           echo "new_version=$new_version" >> $GITHUB_ENV
