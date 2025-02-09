@@ -6,9 +6,13 @@ on:
       version:
         description: 'Version for the new tag (e.g., 1.0.0)'
         required: true
+  push:
+    branches:
+      - master
 
 jobs:
   create_tag:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     name: Create a new tag
     runs-on: ubuntu-latest
 
@@ -33,3 +37,53 @@ jobs:
           git config user.email "${{ env.user_email }}"
           git tag -a "${{ github.event.inputs.version }}" -m "Release ${{ github.event.inputs.version }}"
           git push origin "${{ github.event.inputs.version }}"
+
+  auto_tag:
+    if: ${{ github.event_name == 'push' }}
+    name: Auto-create tag
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Extract commit author information
+        id: commit_info
+        run: |
+
+          last_author_name=$(git log -1 --pretty="%an")
+          last_author_email=$(git log -1 --pretty="%ae")
+
+          echo "commit_author_name=$last_author_name" >> $GITHUB_ENV
+          echo "commit_author_email=$last_author_email" >> $GITHUB_ENV
+
+      - name: Find the latest version tag
+        id: get_latest_tag
+        run: |
+          latest_tag=$(git tag -l --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+
+          if [ -z "$latest_tag" ]; then
+            latest_tag="v0.0.0"
+          fi
+
+          IFS='.' read -r -a version_parts <<< "${latest_tag#v}"
+          major=${version_parts[0]}
+          minor=${version_parts[1]}
+          patch=${version_parts[2]}
+          new_patch=$((patch + 1))
+          new_version="v${major}.${minor}.${new_patch}"
+
+          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+          echo "new_version=$new_version" >> $GITHUB_ENV
+
+      - name: Automatically create and push new tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "${{ env.commit_author_name }}"
+          git config user.email "${{ env.commit_author_email }}"
+          git tag ${{ env.new_version }}
+          git push origin ${{ env.new_version }}
