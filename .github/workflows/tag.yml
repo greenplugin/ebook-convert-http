@@ -119,7 +119,7 @@ jobs:
               ;;
           esac
           
-          new_version="${major}.${minor}.${new_patch}"
+          new_version="${major}.${minor}.${patch}"
 
           echo "latest_tag=$latest_tag" >> $GITHUB_ENV
           echo "new_version=$new_version" >> $GITHUB_ENV
