@@ -10,7 +10,7 @@ RUN go mod download
 RUN go build -o ebook-convert-wrapper ./cmd
 
 
-FROM debian:bullseye-slim
+FROM ubuntu:lts
 
 # Install dependent packages and Calibre
 RUN apt-get update && \
