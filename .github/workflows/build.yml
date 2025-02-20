@@ -10,7 +10,6 @@ on:
     types:
       - completed
 
-
 jobs:
   build:
     name: Build and Push Multi-arch Docker Images
@@ -25,22 +24,27 @@ jobs:
       - name: Determine tag
         id: determine_tag
         run: |
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            # Для события push тег извлекается из github.ref
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            # Извлекаем тег из GITHUB_REF для события push
             TAG=${GITHUB_REF#refs/tags/}
             echo "Detected push event with tag: $TAG"
-          elif [[ "${{ github.event_name }}" == "workflow_run" ]]; then
-            # Для workflow_run тег берётся из head_branch
-            TAG=${{ github.event.workflow_run.head_branch }}
-            echo "Detected workflow_run with tag: $TAG"
+          elif [[ "${GITHUB_EVENT_NAME}" == "workflow_run" ]]; then
+            # Для workflow_run выполняем fetch тегов и выбираем последний SemVer тег
+            git fetch --tags
+            TAG=$(git tag -l | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
+            if [ -z "$TAG" ]; then
+              echo "❌ Тег не найден. Завершаем сборку."
+              exit 1
+            fi
+            echo "Detected workflow_run event with tag: $TAG"
           else
-            echo "Unsupported event: ${{ github.event_name }}"
+            echo "❌ Unsupported event: ${GITHUB_EVENT_NAME}"
             exit 1
           fi
           echo "TAG=$TAG" >> $GITHUB_ENV
           echo "::set-output name=tag::$TAG"
 
-      - name: Checkout repository
+      - name: Checkout repository at tag
         uses: actions/checkout@v3
         with:
           ref: ${{ env.TAG }}

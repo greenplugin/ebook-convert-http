@@ -132,9 +132,3 @@ jobs:
           git config user.email "${{ env.commit_author_email }}"
           git tag ${{ env.new_version }}
           git push origin ${{ env.new_version }}
-
-      - name: Set output for the workflow
-        id: set-output
-        run: |
-          echo "tag=${VERSION}" >> $GITHUB_ENV
-          echo "::set-output name=tag::$VERSION"
