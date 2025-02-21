@@ -21,6 +21,8 @@ RUN apt-get update && \
 # Copy the compiled application from the build stage
 COPY --from=builder /app/ebook-convert-wrapper /usr/local/bin/ebook-convert-wrapper
 
+# Set the QTWEBENGINE_CHROMIUM_FLAGS environment variable for pdf convertation in docker
+ENV QTWEBENGINE_CHROMIUM_FLAGS="--no-sandbox"
 # Expose a port for operation (e.g., 8080)
 EXPOSE 8080
 

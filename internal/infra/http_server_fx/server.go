@@ -2,8 +2,8 @@ package http_server_fx
 
 import (
 	"context"
+	"ebook-convert-http-wrapper/internal/contract"
 	"ebook-convert-http-wrapper/internal/infra/http_server_fx/handlers"
-	"flag"
 	"fmt"
 	"go.uber.org/fx"
 	"log"
@@ -16,13 +16,11 @@ type HTTPServerParams struct {
 
 	Lc       fx.Lifecycle
 	Handlers []handlers.Handler `group:"http_handlers"`
+	Port     contract.Port
 }
 
 func NewHTTPServer(p HTTPServerParams) *http.Server {
-	port := flag.String("port", "12600", "port to start the server (default 12600)")
-	flag.StringVar(port, "p", "12600", "port to start the server (short parameter)")
-
-	srv := &http.Server{Addr: ":" + *port}
+	srv := &http.Server{Addr: ":" + p.Port.String()}
 	mux := http.NewServeMux()
 	srv.Handler = mux
 	log.Printf("Starting HTTP server at %s", srv.Addr)
