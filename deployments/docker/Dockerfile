@@ -10,7 +10,7 @@ RUN go mod download
 RUN go build -o ebook-convert-wrapper ./cmd
 
 
-FROM ubuntu:lts
+FROM ubuntu:latest
 
 # Install dependent packages and Calibre
 RUN apt-get update && \
