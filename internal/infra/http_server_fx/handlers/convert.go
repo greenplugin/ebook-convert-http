@@ -90,7 +90,7 @@ func (c *Convert) handleConversion(w http.ResponseWriter, r *http.Request) {
 	defer os.Remove(outputFile.Name()) // Delete the file after completion
 	outputFile.Close()
 
-	cmdArgs := []string{inputFile.Name(), outputFile.Name()}
+	cmdArgs := []string{"--no-sandbox", inputFile.Name(), outputFile.Name()}
 
 	// Get additional parameters from the request
 	options := r.FormValue("convert-options")
