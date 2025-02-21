@@ -7,7 +7,7 @@ COPY . /app
 
 RUN go mod download
 
-RUN go build -o ebook-convert-wrapper ./cmd
+RUN CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"' -o ebook-convert-wrapper ./cmd
 
 
 FROM ubuntu:latest
